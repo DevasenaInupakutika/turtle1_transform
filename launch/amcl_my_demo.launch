@@ -1,0 +1,76 @@
+<launch>
+
+<node pkg="turtle1_transform" type="general_tf" name="world2map"/>
+<node pkg="turtle1_transform" type="base_to_cam" name="base2cam"/>
+<node pkg="turtle1_transform" type="base_to_laser" name="base2laser"/>
+
+  <!-- kinect nodes -->
+  <!--include file="$(find openni_launch)/launch/openni.launch"/-->
+
+  <!-- openni_manager -->
+  <!--node pkg="nodelet" type="nodelet" name="openni_manager" output="screen" respawn="true" args="manager"/-->
+
+  <!--node pkg="pcl_laser" type="pc2_pcview" name="pcl_data"/-->
+
+  <!-- fake laser -->
+  <!--node pkg="nodelet" type="nodelet" name="kinect_laser" args="load pointcloud_to_laserscan/CloudToScan openni_manager"-->
+  <!--node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="kinect_laser"-->
+    <!--param name="max_height" value="0.30"/-->
+    <!--param name="min_height" value="-0.15"/-->
+    <!--param name="angle_min" value="-0.5058"/-->
+    <!--param name="angle_max" value="0.5058"/-->
+    <!--param name="range_min" value="0.50"/-->
+    <!--param name="range_max" value="6.0"/-->
+    <!--param name="output_frame_id" value="/camera_depth_frame"/-->
+    <!--remap from="image" to="/camera/depth/image_raw"/-->
+    <!--remap from="cloud" to="point_cloud_pcl"/-->
+  <!--/node-->
+
+<!-- FAKE LASER -->
+<include file="/home/turtlebot/kinect_laser.launch"/>
+
+<arg name="map_file" default="/home/turtlebot/robo_lab2p2.yaml"/>
+<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
+
+<arg name="use_map" default="false"/>
+
+<node pkg="amcl" type="amcl" name="amcl" >
+    <param name="use_map_topic" value="$(arg use_map)"/>
+    <!-- Publish scans from best pose at a max of 10 Hz -->
+    <param name="odom_model_type" value="diff"/>
+    <param name="odom_alpha5" value="0.1"/>
+    <param name="gui_publish_rate" value="10.0"/>
+    <param name="laser_max_beams" value="30"/>
+    <param name="laser_max_range" value="6.0"/>
+    <param name="min_particles" value="200"/>
+    <param name="max_particles" value="4000"/>
+    <param name="kld_err" value="0.08"/>
+    <param name="kld_z" value="0.92"/>
+    <param name="odom_alpha1" value="0.2"/>
+    <param name="odom_alpha2" value="0.2"/>
+    <!-- translation std dev, m -->
+    <param name="odom_alpha3" value="0.2"/>
+    <param name="odom_alpha4" value="0.2"/>
+    <param name="laser_z_hit" value="0.92"/>
+    <param name="laser_z_short" value="0.05"/>
+    <param name="laser_z_max" value="0.05"/>
+    <param name="laser_z_rand" value="0.08"/>
+    <param name="laser_sigma_hit" value="0.2"/>
+    <param name="laser_lambda_short" value="0.1"/>
+    <param name="laser_model_type" value="likelihood_field"/>
+    <!-- <param name="laser_model_type" value="beam"/> -->
+    <param name="laser_likelihood_max_dist" value="2.0"/>
+    <param name="update_min_d" value="0.25"/>
+    <param name="update_min_a" value="0.1744"/>
+    <!--<param name="update_min_a" value="0.506"/>-->
+    <param name="odom_frame_id" value="odom"/>
+    <param name="resample_interval" value="1"/>
+    <!-- Increase tolerance because the computer can get quite busy -->
+    <param name="transform_tolerance" value="1.0"/>
+    <param name="recovery_alpha_slow" value="0.0"/>
+    <param name="recovery_alpha_fast" value="0.0"/>
+</node>
+
+<!--node name="pose_finder" pkg="pcl_laser" type="pose_finder_node"/-->
+
+</launch>
